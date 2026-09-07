@@ -1,26 +1,131 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-page: #f3f7fc;
+  --color-surface: #ffffff;
+  --color-navy: #0b214a;
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-primary-soft: #dbeafe;
+  --color-muted: #60708a;
+  --color-placeholder: #9aa8bb;
+  --color-border: #dde6f1;
+  --color-border-strong: #c9d5e5;
+  --color-foreground: #0b214a;
+  --color-surface-muted: #f7f9fc;
+  --color-sidebar: #173f91;
+  --color-placeholder-fill: #e8eef7;
+  --background: var(--color-page);
+  --foreground: var(--color-navy);
+}
+
+.dark {
+  color-scheme: dark;
+  --color-page: #07111f;
+  --color-surface: #0d1b2e;
+  --color-navy: #f4f7fb;
+  --color-muted: #9fb0c7;
+  --color-placeholder: #6f829d;
+  --color-border: #20344f;
+  --color-border-strong: #2c4565;
+  --color-foreground: #f4f7fb;
+  --color-surface-muted: #11233a;
+  --color-sidebar: #102f70;
+  --color-placeholder-fill: #1b304b;
+  --background: var(--color-page);
+  --foreground: var(--color-foreground);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-aeonik), "Inter", "Segoe UI", sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--color-page);
 }
 
 body {
+  min-width: 320px;
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-aeonik), "Inter", "Segoe UI", sans-serif;
+}
+
+.dashboard-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.dashboard-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+button,
+a,
+label[for],
+select,
+input[type="checkbox"],
+input[type="radio"] {
+  cursor: pointer;
+}
+
+button:disabled,
+input:disabled {
+  cursor: not-allowed;
+}
+
+.login-orbit {
+  position: absolute;
+  border: 1px solid rgb(255 255 255 / 14%);
+  border-radius: 9999px;
+  pointer-events: none;
+}
+
+.login-orbit-one {
+  width: 48rem;
+  height: 48rem;
+  right: -24rem;
+  bottom: -20rem;
+}
+
+.login-orbit-two {
+  width: 31rem;
+  height: 31rem;
+  right: -13rem;
+  bottom: -12rem;
+  background: rgb(37 99 235 / 14%);
+}
+
+.bibleplus-toast {
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  color: var(--color-navy);
+  font-family: var(--font-aeonik), "Inter", "Segoe UI", sans-serif;
+  box-shadow: 0 16px 40px rgb(15 42 86 / 12%);
+}
+
+@media (max-width: 640px) {
+  .Toastify__toast-container {
+    width: calc(100% - 1.5rem);
+    left: 0.75rem;
+    right: 0.75rem;
+    top: 0.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

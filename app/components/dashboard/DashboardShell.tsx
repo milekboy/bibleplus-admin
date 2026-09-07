@@ -1,0 +1,333 @@
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import type { IconType } from "react-icons";
+import {
+  HiOutlineArrowDownTray,
+  HiOutlineArrowLeftOnRectangle,
+  HiOutlineBars3,
+  HiOutlineBell,
+  HiOutlineBookOpen,
+  HiOutlineCalendarDays,
+  HiOutlineClipboardDocumentList,
+  HiOutlineCog6Tooth,
+  HiOutlineHome,
+  HiOutlineMagnifyingGlass,
+  HiOutlineMoon,
+  HiOutlineNewspaper,
+  HiOutlineQuestionMarkCircle,
+  HiOutlineShieldCheck,
+  HiOutlineSparkles,
+  HiOutlineSun,
+  HiOutlineUserGroup,
+  HiOutlineUsers,
+  HiOutlineXMark,
+} from "react-icons/hi2";
+
+type NavItem = {
+  label: string;
+  href: string;
+  icon: IconType;
+};
+
+type NavGroup = {
+  label: string;
+  items: NavItem[];
+};
+
+const navGroups: NavGroup[] = [
+  {
+    label: "Overview",
+    items: [{ label: "Dashboard", href: "/dashboard", icon: HiOutlineHome }],
+  },
+  {
+    label: "Content",
+    items: [
+      { label: "Events", href: "/dashboard/events", icon: HiOutlineCalendarDays },
+      { label: "Blogs", href: "/dashboard/blogs", icon: HiOutlineNewspaper },
+      { label: "Books", href: "/dashboard/books", icon: HiOutlineBookOpen },
+      { label: "Quiz", href: "/dashboard/quiz", icon: HiOutlineQuestionMarkCircle },
+      { label: "Verse of the Day", href: "/dashboard/verse", icon: HiOutlineSparkles },
+    ],
+  },
+  {
+    label: "Community",
+    items: [
+      { label: "Users", href: "/dashboard/users", icon: HiOutlineUsers },
+      { label: "Moderation", href: "/dashboard/moderation", icon: HiOutlineShieldCheck },
+      { label: "Notifications", href: "/dashboard/notifications", icon: HiOutlineBell },
+    ],
+  },
+  {
+    label: "Administration",
+    items: [
+      { label: "Admin Management", href: "/dashboard/admins", icon: HiOutlineUserGroup },
+      // { label: "Audit Logs", href: "/dashboard/audit-logs", icon: HiOutlineClipboardDocumentList },
+      { label: "Exports", href: "/dashboard/exports", icon: HiOutlineArrowDownTray },
+      // { label: "System Configuration", href: "/dashboard/system-config", icon: HiOutlineCog6Tooth },
+    ],
+  },
+];
+
+const routeTitles = new Map(
+  navGroups.flatMap((group) => group.items.map((item) => [item.href, item.label])),
+);
+
+function isRouteActive(pathname: string, href: string) {
+  return href === "/dashboard"
+    ? pathname === href
+    : pathname === href || pathname.startsWith(`${href}/`);
+}
+
+export default function DashboardShell({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const [desktopExpanded, setDesktopExpanded] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [isDark, setIsDark] = useState(false);
+  const [currentDate, setCurrentDate] = useState("");
+
+  const pageTitle = useMemo(
+    () => pathname === "/dashboard" ? "Welcome Back" : routeTitles.get(pathname) || "Dashboard",
+    [pathname],
+  );
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("bibleplus-theme");
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const nextIsDark = savedTheme ? savedTheme === "dark" : prefersDark;
+    document.documentElement.classList.toggle("dark", nextIsDark);
+    const frame = window.requestAnimationFrame(() => {
+      setIsDark(nextIsDark);
+      setCurrentDate(
+        new Intl.DateTimeFormat("en-NG", {
+          weekday: "short",
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        }).format(new Date()),
+      );
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileOpen]);
+
+  const toggleTheme = () => {
+    const nextIsDark = !isDark;
+    setIsDark(nextIsDark);
+    localStorage.setItem("bibleplus-theme", nextIsDark ? "dark" : "light");
+    document.documentElement.classList.toggle("dark", nextIsDark);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("adminAccessToken");
+    localStorage.removeItem("adminUser");
+    sessionStorage.removeItem("adminAccessToken");
+    sessionStorage.removeItem("adminUser");
+    router.replace("/");
+  };
+
+  return (
+    <div className="h-screen overflow-hidden bg-[var(--color-page)] p text-[var(--color-foreground)] sm:p-4">
+      {mobileOpen && (
+        <button
+          type="button"
+          aria-label="Close navigation"
+          onClick={() => setMobileOpen(false)}
+          className="fixed inset-0 z-40 cursor-pointer bg-slate-950/40 backdrop-blur-[2px] lg:hidden"
+        />
+      )}
+
+      <aside
+        onMouseEnter={() => setDesktopExpanded(true)}
+        onMouseLeave={() => setDesktopExpanded(false)}
+        className={`fixed inset-y-3 left-3 z-50 flex w-[17rem] flex-col overflow-hidden rounded-[26px] bg-[var(--color-primary)] text-white shadow-[0_20px_50px_rgba(10,35,80,0.18)] transition-[width,transform] duration-300 ease-out sm:inset-y-4 sm:left-4 lg:translate-x-0 ${
+          mobileOpen ? "translate-x-0" : "-translate-x-[calc(100%+2rem)]"
+        } ${desktopExpanded ? "lg:w-[17rem]" : "lg:w-[4.75rem]"}`}
+      >
+        <div className="flex h-[76px] shrink-0 items-center px-[18px]">
+          <Link
+            href="/dashboard"
+            onClick={() => setMobileOpen(false)}
+            className="flex min-w-0 cursor-pointer items-center gap-3"
+            aria-label="BiblePlus dashboard"
+          >
+            <Image
+              src="/icon.png"
+              alt="BiblePlus logo"
+              width={40}
+              height={40}
+              className="h-10 w-10 shrink-0 rounded-xl object-cover"
+              priority
+            />
+            <span
+              className={`whitespace-nowrap text-lg font-semibold tracking-[-0.02em] transition-all duration-200 ${
+                desktopExpanded || mobileOpen
+                  ? "translate-x-0 opacity-100"
+                  : "-translate-x-2 opacity-0"
+              }`}
+            >
+              BiblePlus Admin
+            </span>
+          </Link>
+
+          <button
+            type="button"
+            onClick={() => setMobileOpen(false)}
+            className="ml-auto grid h-9 w-9 shrink-0 cursor-pointer place-items-center rounded-xl text-blue-100 transition-colors hover:bg-white/10 hover:text-white lg:hidden"
+            aria-label="Close menu"
+          >
+            <HiOutlineXMark className="h-6 w-6" />
+          </button>
+        </div>
+
+        <nav className="dashboard-scrollbar flex-1 overflow-y-auto overflow-x-hidden px-3 pb-4">
+          {navGroups.map((group, groupIndex) => (
+            <div
+              key={group.label}
+              className={groupIndex ? "mt-4 border-t border-white/10 pt-4" : "mt-2"}
+            >
+              <p
+                className={`mb-2 h-5 whitespace-nowrap px-3 text-xs font-medium uppercase tracking-[0.16em] text-blue-200/70 transition-opacity duration-200 ${
+                  desktopExpanded || mobileOpen ? "opacity-100" : "opacity-0"
+                }`}
+              >
+                {group.label}
+              </p>
+              <div className="space-y-1">
+                {group.items.map((item) => {
+                  const Icon = item.icon;
+                  const active = isRouteActive(pathname, item.href);
+
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setMobileOpen(false)}
+                      title={!desktopExpanded ? item.label : undefined}
+                      className={`group flex h-11 cursor-pointer items-center gap-3 rounded-xl px-3 transition-colors ${
+                        active
+                          ? "bg-white text-[var(--color-primary)]"
+                          : "text-blue-100 hover:bg-white/10 hover:text-white"
+                      }`}
+                    >
+                      <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
+                      <span
+                        className={`whitespace-nowrap text-sm font-medium transition-all duration-200 ${
+                          desktopExpanded || mobileOpen
+                            ? "translate-x-0 opacity-100"
+                            : "-translate-x-2 opacity-0"
+                        }`}
+                      >
+                        {item.label}
+                      </span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </nav>
+
+        <div className="shrink-0 border-t border-white/10 p-3">
+          <button
+            type="button"
+            onClick={handleLogout}
+            title={!desktopExpanded ? "Log out" : undefined}
+            className="flex h-11 w-full cursor-pointer items-center gap-3 rounded-xl px-3 text-blue-100 transition-colors hover:bg-white/10 hover:text-white"
+          >
+            <HiOutlineArrowLeftOnRectangle className="h-5 w-5 shrink-0" />
+            <span
+              className={`whitespace-nowrap text-sm font-medium transition-all duration-200 ${
+                desktopExpanded || mobileOpen
+                  ? "translate-x-0 opacity-100"
+                  : "-translate-x-2 opacity-0"
+              }`}
+            >
+              Log out
+            </span>
+          </button>
+        </div>
+      </aside>
+
+      <div
+        className={`h-full transition-[padding] duration-300 ease-out ${
+          desktopExpanded ? "lg:pl-[17.75rem]" : "lg:pl-[5.5rem]"
+        }`}
+      >
+        <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-[26px] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[0_18px_55px_rgba(17,45,90,0.07)]">
+          <header className="z-30 flex min-h-[88px] shrink-0 flex-wrap items-center gap-3 border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-4 sm:px-6 lg:px-8">
+            <button
+              type="button"
+              onClick={() => setMobileOpen(true)}
+              className="grid h-10 w-10 shrink-0 cursor-pointer place-items-center rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-muted)] text-[var(--color-foreground)] transition-colors hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] lg:hidden"
+              aria-label="Open navigation"
+            >
+              <HiOutlineBars3 className="h-6 w-6" />
+            </button>
+
+            <div className="min-w-0">
+           
+              <h1 className="truncate text-xl font-semibold tracking-[-0.025em] text-[var(--color-foreground)] sm:text-2xl">
+                {pageTitle}
+              </h1>
+            </div>
+
+            <label className="relative order-3 w-full sm:order-none sm:ml-8 sm:flex-1 sm:max-w-[28rem] lg:ml-16 xl:ml-24">
+              <span className="sr-only">Search dashboard</span>
+              <HiOutlineMagnifyingGlass className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[var(--color-placeholder)]" />
+              <input
+                type="search"
+                placeholder="Search dashboard..."
+                className="h-10 w-full rounded-full border border-transparent bg-[var(--color-surface-muted)] py-2 pl-11 pr-5 text-sm text-[var(--color-foreground)] outline-none transition-colors placeholder:text-[var(--color-placeholder)] hover:bg-[var(--color-placeholder-fill)] focus:border-[var(--color-border)] focus:bg-[var(--color-surface)] focus:ring-2 focus:ring-[var(--color-primary-soft)]"
+              />
+            </label>
+
+            <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
+              <p className="hidden text-sm text-[var(--color-muted)] md:block">
+                {currentDate}
+              </p>
+              <Link
+                href="/dashboard/notifications"
+                className="grid h-10 w-10 cursor-pointer place-items-center rounded-xl  border-[var(--color-border)] bg-[var(--color-surface-muted)] text-[var(--color-muted)] transition-colors hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
+                aria-label="Open notifications"
+              >
+                <HiOutlineBell className="h-5 w-5" />
+              </Link>
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="grid h-10 w-10 cursor-pointer hidden place-items-center rounded-xl  border-[var(--color-border)] bg-[var(--color-surface-muted)] text-[var(--color-muted)] transition-colors hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
+                aria-label={isDark ? "Use light mode" : "Use dark mode"}
+              >
+                {isDark ? (
+                  <HiOutlineSun className="h-5 w-5" />
+                ) : (
+                  <HiOutlineMoon className="h-5 w-5" />
+                )}
+              </button>
+              <div className="grid h-10 w-10 place-items-center cursor-pointer rounded-4xl bg-[var(--color-primary)] text-sm font-semibold text-white">
+                A
+              </div>
+            </div>
+          </header>
+
+          <main className="dashboard-scrollbar min-h-0 flex-1 overflow-y-auto rounded-t-[32px] bg-gray-100
+  p-4 sm:p-6 lg:p-8">
+            {children}
+          </main>
+        </div>
+      </div>
+    </div>
+  );
+}
