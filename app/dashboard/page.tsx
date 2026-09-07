@@ -27,7 +27,7 @@ export default function DashboardPage() {
           Platform overview
         </h2>
         <p className="mt-2 text-base text-[var(--color-muted)]">
-          Dashboard components will be connected in the next phase.
+          Get an overiew of all the activities 
         </p>
       </div>
 
