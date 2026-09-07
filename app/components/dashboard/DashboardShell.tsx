@@ -16,12 +16,10 @@ import {
   HiOutlineCog6Tooth,
   HiOutlineHome,
   HiOutlineMagnifyingGlass,
-  HiOutlineMoon,
   HiOutlineNewspaper,
   HiOutlineQuestionMarkCircle,
   HiOutlineShieldCheck,
   HiOutlineSparkles,
-  HiOutlineSun,
   HiOutlineUserGroup,
   HiOutlineUsers,
   HiOutlineXMark,
@@ -87,7 +85,6 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [desktopExpanded, setDesktopExpanded] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [isDark, setIsDark] = useState(false);
   const [currentDate, setCurrentDate] = useState("");
 
   const pageTitle = useMemo(
@@ -96,12 +93,9 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem("bibleplus-theme");
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const nextIsDark = savedTheme ? savedTheme === "dark" : prefersDark;
-    document.documentElement.classList.toggle("dark", nextIsDark);
+    document.documentElement.classList.remove("dark");
+    localStorage.removeItem("bibleplus-theme");
     const frame = window.requestAnimationFrame(() => {
-      setIsDark(nextIsDark);
       setCurrentDate(
         new Intl.DateTimeFormat("en-NG", {
           weekday: "short",
@@ -121,13 +115,6 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
       document.body.style.overflow = "";
     };
   }, [mobileOpen]);
-
-  const toggleTheme = () => {
-    const nextIsDark = !isDark;
-    setIsDark(nextIsDark);
-    localStorage.setItem("bibleplus-theme", nextIsDark ? "dark" : "light");
-    document.documentElement.classList.toggle("dark", nextIsDark);
-  };
 
   const handleLogout = () => {
     localStorage.removeItem("adminAccessToken");
@@ -304,18 +291,6 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
               >
                 <HiOutlineBell className="h-5 w-5" />
               </Link>
-              <button
-                type="button"
-                onClick={toggleTheme}
-                className="grid h-10 w-10 cursor-pointer hidden place-items-center rounded-xl  border-[var(--color-border)] bg-[var(--color-surface-muted)] text-[var(--color-muted)] transition-colors hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
-                aria-label={isDark ? "Use light mode" : "Use dark mode"}
-              >
-                {isDark ? (
-                  <HiOutlineSun className="h-5 w-5" />
-                ) : (
-                  <HiOutlineMoon className="h-5 w-5" />
-                )}
-              </button>
               <div className="grid h-10 w-10 place-items-center cursor-pointer rounded-4xl bg-[var(--color-primary)] text-sm font-semibold text-white">
                 A
               </div>
