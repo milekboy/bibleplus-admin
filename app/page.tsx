@@ -2,50 +2,28 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { FiEye, FiEyeOff } from "react-icons/fi";
-import { toast, ToastContainer } from "react-toastify";
-import NetworkInstance from "./components/api/NetworkInstance";
+import { toast } from "react-toastify";
 
-type LoginResponse = {
-  success?: boolean;
-  message?: string;
-  error?: string;
-  accessToken?: string;
-  token?: string;
-  user?: unknown;
-  data?: {
-    accessToken?: string;
-    token?: string;
-    user?: unknown;
-  };
-};
+type LoginResponse = { success?: boolean; message?: string; data?: { user?: { role?: string }; expiresAt?: number } };
 
 function getErrorMessage(error: unknown) {
-  if (typeof error === "object" && error && "response" in error) {
-    const response = (
-      error as {
-        response?: { data?: { message?: string; error?: string } };
-      }
-    ).response;
-
-    return (
-      response?.data?.message ||
-      response?.data?.error ||
-      "We could not sign you in. Check your details and try again."
-    );
-  }
-
-  return "We could not reach BiblePlus. Please try again shortly.";
+  return error instanceof Error ? error.message : "We could not reach BiblePlus. Please try again shortly.";
 }
-
 export default function Home() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    localStorage.removeItem("adminAccessToken");
+    localStorage.removeItem("adminUser");
+    sessionStorage.removeItem("adminAccessToken");
+    sessionStorage.removeItem("adminUser");
+  }, []);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -58,64 +36,19 @@ export default function Home() {
     setIsSubmitting(true);
 
     try {
-      console.info("[Login] Submitting request", {
-        endpoint: "/api/admin/login",
-        email: email.trim(),
-        rememberMe,
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ email: email.trim(), password }),
       });
-
-      const response = await NetworkInstance().post<LoginResponse>(
-        "/api/admin/login",
-        {
-          email: email.trim(),
-          password,
-        },
-      );
-
-      const payload = response.data;
-      const accessToken =
-        payload.data?.accessToken ||
-        payload.data?.token ||
-        payload.accessToken ||
-        payload.token;
-      const user = payload.data?.user || payload.user;
-
-      console.info("[Login] Response received", {
-        status: response.status,
-        success: payload.success,
-        message: payload.message,
-        hasAccessToken: Boolean(accessToken),
-        hasUser: Boolean(user),
-      });
-
-      if (!accessToken) {
-        console.warn("[Login] Response did not include an access token");
-        toast.error(payload.message || payload.error || "Login failed.");
-        return;
-      }
-
-      const storage = rememberMe ? localStorage : sessionStorage;
-      const otherStorage = rememberMe ? sessionStorage : localStorage;
-      otherStorage.removeItem("adminAccessToken");
-      otherStorage.removeItem("adminUser");
-      storage.setItem("adminAccessToken", accessToken);
-      if (user) storage.setItem("adminUser", JSON.stringify(user));
-
-      console.info("[Login] Authentication saved", {
-        storage: rememberMe ? "localStorage" : "sessionStorage",
-        redirectTo: "/dashboard",
-      });
-      toast.success("Welcome back. You are signed in.");
-      router.replace("/dashboard");
+      const payload = (await response.json().catch(() => ({}))) as LoginResponse;
+      if (!response.ok) throw new Error(payload.message || "We could not sign you in. Check your details and try again.");
+      toast.success(payload.message || "Welcome back. You are signed in.");
+      const requested = new URLSearchParams(window.location.search).get("returnTo");
+      const destination = requested?.startsWith("/dashboard") && !requested.startsWith("//") ? requested : "/dashboard";
+      router.replace(destination);
     } catch (error) {
-      const message = getErrorMessage(error);
-      const status =
-        typeof error === "object" && error && "response" in error
-          ? (error as { response?: { status?: number } }).response?.status
-          : undefined;
-
-      console.error("[Login] Request failed", { status, message });
-      toast.error(message);
+      toast.error(getErrorMessage(error));
     } finally {
       setIsSubmitting(false);
     }
@@ -235,17 +168,6 @@ export default function Home() {
           </div>
         </aside>
       </section>
-
-      <ToastContainer
-        position="top-right"
-        autoClose={3500}
-        hideProgressBar
-        newestOnTop
-        closeOnClick
-        pauseOnHover
-        theme="light"
-        toastClassName="bibleplus-toast"
-      />
-    </main>
+</main>
   );
 }

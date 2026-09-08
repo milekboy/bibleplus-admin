@@ -1,0 +1,4 @@
+import { NextResponse } from "next/server";
+import { buildBackendUrl, fetchWithTimeout } from "@/lib/api/server";
+import { ACCESS_TOKEN_COOKIE, ADMIN_PROFILE_COOKIE, sessionCookieOptions } from "@/lib/auth/token";
+export async function POST(request: Request) { const token = request.headers.get("cookie")?.split(";").map((part) => part.trim()).find((part) => part.startsWith(`${ACCESS_TOKEN_COOKIE}=`))?.slice(ACCESS_TOKEN_COOKIE.length + 1); const logoutPath = process.env.BIBLEPLUS_ADMIN_LOGOUT_PATH?.trim(); if (token && logoutPath) { try { await fetchWithTimeout(buildBackendUrl(logoutPath), { method: "POST", headers: { Authorization: `Bearer ${decodeURIComponent(token)}` }, cache: "no-store" }, 5_000); } catch {} } const response = NextResponse.json({ success: true }); response.cookies.set(ACCESS_TOKEN_COOKIE, "", { ...sessionCookieOptions(), maxAge: 0 }); response.cookies.set(ADMIN_PROFILE_COOKIE, "", { ...sessionCookieOptions(), maxAge: 0 }); return response; }

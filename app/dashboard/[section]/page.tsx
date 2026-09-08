@@ -5,14 +5,14 @@ const sections = {
   blogs: "Blogs",
   books: "Books",
   quiz: "Quiz",
-  verse: "Verse of the Day",
+  "verse-of-day": "Verse of the Day",
   users: "Users",
   moderation: "Moderation",
   notifications: "Notifications",
-  admins: "Admin Management",
+  "admin-management": "Admin Management",
   "audit-logs": "Audit Logs",
   exports: "Exports",
-  "system-config": "System Configuration",
+  "system-configuration": "System Configuration",
 } as const;
 
 type Section = keyof typeof sections;

@@ -5,6 +5,9 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import type { IconType } from "react-icons";
+import { ErrorState } from "@/components/ui";
+import { canAccessRestrictedAdminArea, isRestrictedAdminRoute } from "@/lib/auth/roles";
+import type { AdminSession } from "@/types/auth";
 import {
   HiOutlineArrowDownTray,
   HiOutlineArrowLeftOnRectangle,
@@ -48,7 +51,7 @@ const navGroups: NavGroup[] = [
       { label: "Blogs", href: "/dashboard/blogs", icon: HiOutlineNewspaper },
       { label: "Books", href: "/dashboard/books", icon: HiOutlineBookOpen },
       { label: "Quiz", href: "/dashboard/quiz", icon: HiOutlineQuestionMarkCircle },
-      { label: "Verse of the Day", href: "/dashboard/verse", icon: HiOutlineSparkles },
+      { label: "Verse of the Day", href: "/dashboard/verse-of-day", icon: HiOutlineSparkles },
     ],
   },
   {
@@ -62,10 +65,11 @@ const navGroups: NavGroup[] = [
   {
     label: "Administration",
     items: [
-      { label: "Admin Management", href: "/dashboard/admins", icon: HiOutlineUserGroup },
+      { label: "Admin Management", href: "/dashboard/admin-management", icon: HiOutlineUserGroup },
+      { label: "Audit Logs", href: "/dashboard/audit-logs", icon: HiOutlineClipboardDocumentList },
       // { label: "Audit Logs", href: "/dashboard/audit-logs", icon: HiOutlineClipboardDocumentList },
       { label: "Exports", href: "/dashboard/exports", icon: HiOutlineArrowDownTray },
-      // { label: "System Configuration", href: "/dashboard/system-config", icon: HiOutlineCog6Tooth },
+      { label: "System Configuration", href: "/dashboard/system-configuration", icon: HiOutlineCog6Tooth },
     ],
   },
 ];
@@ -80,12 +84,16 @@ function isRouteActive(pathname: string, href: string) {
     : pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export default function DashboardShell({ children }: { children: ReactNode }) {
+export default function DashboardShell({ children, session }: { children: ReactNode; session: AdminSession }) {
   const pathname = usePathname();
   const router = useRouter();
   const [desktopExpanded, setDesktopExpanded] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [currentDate, setCurrentDate] = useState("");
+  const [loggingOut, setLoggingOut] = useState(false);
+  const privileged = canAccessRestrictedAdminArea(session.user.role);
+  const visibleNavGroups = useMemo(() => navGroups.map((group) => ({ ...group, items: group.items.filter((item) => privileged || !isRestrictedAdminRoute(item.href)) })).filter((group) => group.items.length), [privileged]);
+  const permissionDenied = isRestrictedAdminRoute(pathname) && !privileged;
 
   const pageTitle = useMemo(
     () => pathname === "/dashboard" ? "Welcome Back" : routeTitles.get(pathname) || "Dashboard",
@@ -95,6 +103,10 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.documentElement.classList.remove("dark");
     localStorage.removeItem("bibleplus-theme");
+    localStorage.removeItem("adminAccessToken");
+    localStorage.removeItem("adminUser");
+    sessionStorage.removeItem("adminAccessToken");
+    sessionStorage.removeItem("adminUser");
     const frame = window.requestAnimationFrame(() => {
       setCurrentDate(
         new Intl.DateTimeFormat("en-NG", {
@@ -116,12 +128,11 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
     };
   }, [mobileOpen]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("adminAccessToken");
-    localStorage.removeItem("adminUser");
-    sessionStorage.removeItem("adminAccessToken");
-    sessionStorage.removeItem("adminUser");
-    router.replace("/");
+  const handleLogout = async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    try { await fetch("/api/auth/logout", { method: "POST", credentials: "same-origin" }); }
+    finally { router.replace("/"); router.refresh(); }
   };
 
   return (
@@ -179,7 +190,7 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
         </div>
 
         <nav className="dashboard-scrollbar flex-1 overflow-y-auto overflow-x-hidden px-3 pb-4">
-          {navGroups.map((group, groupIndex) => (
+          {visibleNavGroups.map((group, groupIndex) => (
             <div
               key={group.label}
               className={groupIndex ? "mt-4 border-t border-white/10 pt-4" : "mt-2"}
@@ -230,6 +241,7 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
           <button
             type="button"
             onClick={handleLogout}
+            disabled={loggingOut}
             title={!desktopExpanded ? "Log out" : undefined}
             className="flex h-11 w-full cursor-pointer items-center gap-3 rounded-xl px-3 text-blue-100 transition-colors hover:bg-white/10 hover:text-white"
           >
@@ -241,7 +253,7 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
                   : "-translate-x-2 opacity-0"
               }`}
             >
-              Log out
+              {loggingOut ? "Logging out…" : "Log out"}
             </span>
           </button>
         </div>
@@ -299,7 +311,7 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
 
           <main className="dashboard-scrollbar min-h-0 flex-1 overflow-y-auto rounded-t-[32px] bg-gray-100
   p-4 sm:p-6 lg:p-8">
-            {children}
+            {permissionDenied ? <ErrorState title="Permission denied" description="Your administrator role does not grant access to this area." /> : children}
           </main>
         </div>
       </div>

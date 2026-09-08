@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
+import { AppToasts } from "@/app/components/AppToasts";
 
 const aeonik = localFont({
   src: [
@@ -48,7 +49,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${aeonik.variable} h-full antialiased`}>
-      <body className="flex min-h-full flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">{children}<AppToasts /></body>
     </html>
   );
 }
