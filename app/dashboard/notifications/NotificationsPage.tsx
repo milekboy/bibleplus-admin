@@ -149,7 +149,7 @@ function DirectForm({ onSent }: { onSent: () => Promise<void> }) {
   return <ComposeLayout title="Direct notification" description="This message will be sent to one user identified by their backend user ID." preview={<Preview audience="One user" title={form.title} message={form.message} />}><form onSubmit={submit} className="space-y-4"><Field label="Recipient user ID" error={errors.userId}><Input value={form.userId} onChange={(event) => { setForm((current) => ({ ...current, userId: event.target.value })); setErrors((current) => ({ ...current, userId: "" })); }} disabled={pending} /></Field><Field label="Title" error={errors.title}><Input value={form.title} onChange={(event) => { setForm((current) => ({ ...current, title: event.target.value })); setErrors((current) => ({ ...current, title: "" })); }} disabled={pending} /></Field><Field label="Message" error={errors.message}><Textarea value={form.message} onChange={(event) => { setForm((current) => ({ ...current, message: event.target.value })); setErrors((current) => ({ ...current, message: "" })); }} disabled={pending} /></Field><Button type="submit" loading={pending}><HiOutlinePaperAirplane className="h-4 w-4" />Send to one user</Button></form></ComposeLayout>;
 }
 
-function BroadcastForm({ onSent }: { onSent: () => Promise<void> }) {
+export function BroadcastForm({ onSent }: { onSent: () => Promise<void> }) {
   const [form, setForm] = useState({ title: "", message: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [confirming, setConfirming] = useState(false);

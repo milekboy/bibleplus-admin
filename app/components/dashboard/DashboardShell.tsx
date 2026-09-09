@@ -20,6 +20,8 @@ import {
   HiOutlineHome,
   HiOutlineKey,
   HiOutlineMagnifyingGlass,
+  HiOutlineMoon,
+  HiOutlineSun,
   HiOutlineNewspaper,
   HiOutlineQuestionMarkCircle,
   HiOutlineShieldCheck,
@@ -93,6 +95,7 @@ export default function DashboardShell({ children, session }: { children: ReactN
   const [mobileOpen, setMobileOpen] = useState(false);
   const [currentDate, setCurrentDate] = useState("");
   const [loggingOut, setLoggingOut] = useState(false);
+  const [theme, setTheme] = useState<"light" | "dark">("light");
   const privileged = canAccessRestrictedAdminArea(session.user.role);
   const visibleNavGroups = useMemo(() => navGroups.map((group) => ({ ...group, items: group.items.filter((item) => privileged || !isRestrictedAdminRoute(item.href)) })).filter((group) => group.items.length), [privileged]);
   const permissionDenied = isRestrictedAdminRoute(pathname) && !privileged;
@@ -103,13 +106,15 @@ export default function DashboardShell({ children, session }: { children: ReactN
   );
 
   useEffect(() => {
-    document.documentElement.classList.remove("dark");
-    localStorage.removeItem("bibleplus-theme");
+    const savedTheme = localStorage.getItem("bibleplus-theme");
+    const preferredTheme = savedTheme === "dark" || savedTheme === "light" ? savedTheme : window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    document.documentElement.classList.toggle("dark", preferredTheme === "dark");
     localStorage.removeItem("adminAccessToken");
     localStorage.removeItem("adminUser");
     sessionStorage.removeItem("adminAccessToken");
     sessionStorage.removeItem("adminUser");
     const frame = window.requestAnimationFrame(() => {
+      setTheme(preferredTheme);
       setCurrentDate(
         new Intl.DateTimeFormat("en-NG", {
           weekday: "short",
@@ -129,6 +134,13 @@ export default function DashboardShell({ children, session }: { children: ReactN
       document.body.style.overflow = "";
     };
   }, [mobileOpen]);
+
+  const toggleTheme = () => {
+    const next = theme === "dark" ? "light" : "dark";
+    setTheme(next);
+    document.documentElement.classList.toggle("dark", next === "dark");
+    localStorage.setItem("bibleplus-theme", next);
+  };
 
   const handleLogout = async () => {
     if (loggingOut) return;
@@ -298,6 +310,14 @@ export default function DashboardShell({ children, session }: { children: ReactN
               <p className="hidden text-sm text-[var(--color-muted)] md:block">
                 {currentDate}
               </p>
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="grid h-10 w-10 cursor-pointer place-items-center rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-muted)] text-[var(--color-muted)] transition-colors hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--color-primary-soft)]"
+                aria-label={theme === "dark" ? "Use light theme" : "Use dark theme"}
+              >
+                {theme === "dark" ? <HiOutlineSun className="h-5 w-5" /> : <HiOutlineMoon className="h-5 w-5" />}
+              </button>
               <Link
                 href="/dashboard/notifications"
                 className="grid h-10 w-10 cursor-pointer place-items-center rounded-xl  border-[var(--color-border)] bg-[var(--color-surface-muted)] text-[var(--color-muted)] transition-colors hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
@@ -311,7 +331,7 @@ export default function DashboardShell({ children, session }: { children: ReactN
             </div>
           </header>
 
-          <main className="dashboard-scrollbar min-h-0 flex-1 overflow-y-auto rounded-t-[32px] bg-gray-100
+          <main className="dashboard-scrollbar min-h-0 flex-1 overflow-y-auto rounded-t-[32px] bg-[var(--color-page)]
   p-4 sm:p-6 lg:p-8">
             {permissionDenied ? <ErrorState title="Permission denied" description="Your administrator role does not grant access to this area." /> : children}
           </main>

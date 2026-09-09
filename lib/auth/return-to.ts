@@ -1,0 +1,1 @@
+export function safeDashboardReturnTo(value: string | null | undefined) { return value?.startsWith("/dashboard") && !value.startsWith("//") ? value : "/dashboard"; }

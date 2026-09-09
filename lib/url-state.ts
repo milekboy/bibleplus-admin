@@ -1,0 +1,3 @@
+export type QueryUpdate = Record<string, string | number | boolean | null | undefined>;
+export function updateQueryString(current: string, updates: QueryUpdate) { const params = new URLSearchParams(current); Object.entries(updates).forEach(([key, value]) => value === null || value === undefined || value === "" ? params.delete(key) : params.set(key, String(value))); return params.toString(); }
+export function positivePage(value: string | null | undefined) { const parsed = Number(value); return Number.isInteger(parsed) && parsed > 0 ? parsed : 1; }

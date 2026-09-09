@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import localFont from "next/font/local";
 import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
@@ -46,7 +47,7 @@ export const metadata: Metadata = {
   description: "Secure administration for the BiblePlus platform.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${aeonik.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">{children}<AppToasts /></body>
