@@ -525,7 +525,7 @@ The explicit route files should replace the current generic `[section]` placehol
 
 ---
 
-# [ ] Step 14 - Implement system configuration and admin password security
+# [x] Step 14 - Implement system configuration and admin password security
 
 ## Requirements
 
