@@ -463,7 +463,7 @@ The explicit route files should replace the current generic `[section]` placehol
 
 ---
 
-# [ ] Step 12 - Implement notification history, direct send, and broadcast
+# [x] Step 12 - Implement notification history, direct send, and broadcast
 
 ## Requirements
 
