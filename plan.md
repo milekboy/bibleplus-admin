@@ -487,7 +487,7 @@ The explicit route files should replace the current generic `[section]` placehol
 
 ---
 
-# [ ] Step 13 - Implement audit logs and controlled data exports
+# [x] Step 13 - Implement audit logs and controlled data exports
 
 ## Requirements
 
