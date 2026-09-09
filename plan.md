@@ -333,7 +333,7 @@ The explicit route files should replace the current generic `[section]` placehol
 
 ---
 
-# [ ] Step 8 - Implement complete book-library management
+# [x] Step 8 - Implement complete book-library management
 
 ## Requirements
 
