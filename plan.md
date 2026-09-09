@@ -356,7 +356,7 @@ The explicit route files should replace the current generic `[section]` placehol
 
 ---
 
-# [ ] Step 9 - Implement quiz administration and Verse of the Day
+# [x] Step 9 - Implement quiz administration and Verse of the Day
 
 ## Requirements
 
