@@ -245,7 +245,7 @@ The explicit route files should replace the current generic `[section]` placehol
 
 ---
 
-# [ ] Step 6 - Implement complete event, speaker, and event-category management
+# [x] Step 6 - Implement complete event, speaker, and event-category management
 
 ## Requirements
 
