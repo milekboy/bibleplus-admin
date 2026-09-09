@@ -399,7 +399,7 @@ The explicit route files should replace the current generic `[section]` placehol
 
 ---
 
-# [ ] Step 10 - Implement user administration and admin-account management
+# [x] Step 10 - Implement user administration and admin-account management
 
 ## Requirements
 
