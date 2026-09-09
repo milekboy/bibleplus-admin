@@ -291,7 +291,7 @@ The explicit route files should replace the current generic `[section]` placehol
 
 ---
 
-# [ ] Step 7 - Implement complete blog and comment management
+# [x] Step 7 - Implement complete blog and comment management
 
 ## Requirements
 
