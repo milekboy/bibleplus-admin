@@ -439,7 +439,7 @@ The explicit route files should replace the current generic `[section]` placehol
 
 ---
 
-# [ ] Step 11 - Implement the unified prayer and comment moderation workspace
+# [x] Step 11 - Implement the unified prayer and comment moderation workspace
 
 ## Requirements
 
