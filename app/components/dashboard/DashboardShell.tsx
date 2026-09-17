@@ -8,6 +8,7 @@ import type { IconType } from "react-icons";
 import { ErrorState } from "@/components/ui";
 import { canAccessRestrictedAdminArea, isRestrictedAdminRoute } from "@/lib/auth/roles";
 import type { AdminSession } from "@/types/auth";
+import GlobalDashboardSearch, { type DashboardSearchPage } from "./GlobalDashboardSearch";
 import {
   HiOutlineArrowDownTray,
   HiOutlineArrowLeftOnRectangle,
@@ -19,7 +20,6 @@ import {
   HiOutlineCog6Tooth,
   HiOutlineHome,
   HiOutlineKey,
-  HiOutlineMagnifyingGlass,
   HiOutlineMoon,
   HiOutlineSun,
   HiOutlineNewspaper,
@@ -82,6 +82,22 @@ const routeTitles = new Map(
   navGroups.flatMap((group) => group.items.map((item) => [item.href, item.label])),
 );
 
+const searchKeywords: Record<string, string[]> = {
+  "/dashboard": ["home", "overview", "analytics"],
+  "/dashboard/events": ["calendar", "speaker", "conference"],
+  "/dashboard/blogs": ["post", "article", "category", "content"],
+  "/dashboard/books": ["library", "author", "reading"],
+  "/dashboard/quiz": ["question", "daily quiz", "trivia"],
+  "/dashboard/verse-of-day": ["verse", "scripture", "daily"],
+  "/dashboard/users": ["account", "member", "profile"],
+  "/dashboard/moderation": ["report", "flag", "review"],
+  "/dashboard/notifications": ["broadcast", "message", "alert"],
+  "/dashboard/admin-management": ["administrator", "role", "permission"],
+  "/dashboard/audit-logs": ["history", "activity", "log"],
+  "/dashboard/exports": ["download", "csv", "data"],
+  "/dashboard/security": ["password", "authentication"],
+  "/dashboard/system-configuration": ["settings", "config", "feature flag"],
+};
 function isRouteActive(pathname: string, href: string) {
   return href === "/dashboard"
     ? pathname === href
@@ -98,6 +114,7 @@ export default function DashboardShell({ children, session }: { children: ReactN
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const privileged = canAccessRestrictedAdminArea(session.user.role);
   const visibleNavGroups = useMemo(() => navGroups.map((group) => ({ ...group, items: group.items.filter((item) => privileged || !isRestrictedAdminRoute(item.href)) })).filter((group) => group.items.length), [privileged]);
+  const searchablePages = useMemo<DashboardSearchPage[]>(() => visibleNavGroups.flatMap((group) => group.items.map((item) => ({ ...item, group: group.label, keywords: searchKeywords[item.href] }))), [visibleNavGroups]);
   const permissionDenied = isRestrictedAdminRoute(pathname) && !privileged;
 
   const pageTitle = useMemo(
@@ -296,15 +313,7 @@ export default function DashboardShell({ children, session }: { children: ReactN
               </h1>
             </div>
 
-            <label className="relative order-3 w-full sm:order-none sm:ml-8 sm:flex-1 sm:max-w-[28rem] lg:ml-16 xl:ml-24">
-              <span className="sr-only">Search dashboard</span>
-              <HiOutlineMagnifyingGlass className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[var(--color-placeholder)]" />
-              <input
-                type="search"
-                placeholder="Search dashboard..."
-                className="h-10 w-full rounded-full border border-transparent bg-[var(--color-surface-muted)] py-2 pl-11 pr-5 text-sm text-[var(--color-foreground)] outline-none transition-colors placeholder:text-[var(--color-placeholder)] hover:bg-[var(--color-placeholder-fill)] focus:border-[var(--color-border)] focus:bg-[var(--color-surface)] focus:ring-2 focus:ring-[var(--color-primary-soft)]"
-              />
-            </label>
+            <GlobalDashboardSearch key={pathname} pages={searchablePages} />
 
             <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
               <p className="hidden text-sm text-[var(--color-muted)] md:block">
